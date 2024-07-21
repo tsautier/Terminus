@@ -7,18 +7,20 @@ import sys
 from os import environ
 from os.path import isfile, join, realpath, basename, dirname
 from polib import pofile
-sys.path.append(
-    join(dirname(dirname(realpath(__file__))),'lib','python3')
-)
-from _terminal_game_common import onlyfiles
-from _terminal_game_common.po import \
-    find_po_references, fetch_langs, get_msgid_dbls
-from _terminal_game_common.colors import RED, GREEN, RYELLOW, RGREEN
-from _terminal_game_common.jspart import get_assets_references
+for attempt in range(2):
+    try:
+        import mkcmdlinegame
+        from mkcmdlinegame.colors import RED, GREEN, RYELLOW, RGREEN
+    except ImportError:
+        sys.path.append(
+            join(dirname(dirname(realpath(__file__))), 'lib', 'python3')
+        )
+        continue
+    break
 
 
 def _get_missing(curdir, langs):
-    po_refs = find_po_references(curdir)
+    po_refs = mkcmdlinegame.po.find_po_references(curdir)
     missing = []
     missingpo = []
     comments = 0
@@ -51,7 +53,7 @@ def _get_missing(curdir, langs):
 
 
 def _get_dbl(gamedir, langs):
-    occur = get_msgid_dbls(gamedir, langs)
+    occur = mkcmdlinegame.po.get_msgid_dbls(gamedir, langs)
     dbls = []
     for lang in occur:
         for msgid in occur[lang].keys():
@@ -62,21 +64,21 @@ def _get_dbl(gamedir, langs):
 
 
 def _get_assets_missing(curdir):
-    refs = [ref for ref in get_assets_references(curdir)
-            if not onlyfiles(curdir, prefix=ref)]
+    refs = [ref for ref in mkcmdlinegame.jspart.get_assets_references(curdir)
+            if not mkcmdlinegame.utils.onlyfiles(curdir, prefix=ref)]
     return [
         RYELLOW % " " + " " + RED % " ".join(['missing'] + refs)
     ] if refs else []
 
 
-def main(currentdir):
+def _main(currentdir):
     gamepath = realpath(environ.get('FS'))
     current = realpath(currentdir)
     lang = environ.get('POLANG', False)
     if gamepath not in current:
         print('')
         exit()
-    langs = [lang] if lang else fetch_langs(gamepath)
+    langs = [lang] if lang else mkcmdlinegame.po.fetch_langs(gamepath)
     (errors, comments) = _get_missing(current, langs)
     errors += _get_assets_missing(current)
     errors += _get_dbl(gamepath, langs)
@@ -91,7 +93,7 @@ def main(currentdir):
 
 
 if __name__ == '__main__':
-    try:
-        main(sys.argv[1] if len(sys.argv) > 1 else environ.get('FS'))
-    except Exception:
-        pass
+    # try:
+    _main(sys.argv[1] if len(sys.argv) > 1 else environ.get('FS'))
+    # except Exception:
+    #    pass

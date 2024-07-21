@@ -1,0 +1,11 @@
+#
+msgid ""
+msgstr ""
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "room_place_louise_michel_text"
+msgstr ""
+
+msgid "room_place_louise_michel"
+msgstr ""

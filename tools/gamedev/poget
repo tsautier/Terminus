@@ -9,8 +9,8 @@ from polib import pofile
 sys.path.append(
     join(dirname(dirname(realpath(__file__))),'lib','python3')
 )
-from _terminal_game_common import _regexp
-from _terminal_game_common.po import po_get, po_list_msgids, fetch_langs
+from mkcmdlinegame import _regexp
+from mkcmdlinegame.po import po_get, po_list_msgids, fetch_langs
 
 LIVE_EDITOR = environ.get('LIVE_EDITOR', "vi {file} +/{msgid}")
 #

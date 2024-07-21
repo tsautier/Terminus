@@ -30,10 +30,10 @@ import sys
 sys.path.append(
     join(dirname(dirname(realpath(__file__))), 'lib', 'python3')
 )
-from _terminal_game_common.build_params import get_project_parameters
-from _terminal_game_common.jspart import get_attrs_content
-from _terminal_game_common.po import po_get, po_list_msgids, fetch_langs
-from _terminal_game_common.logging import print_warn
+from mkcmdlinegame.build_params import get_project_parameters
+from mkcmdlinegame.jspart import get_attrs_content
+from mkcmdlinegame.po import po_get, po_list_msgids, fetch_langs
+from mkcmdlinegame.logging import print_warn
 
 try:
     import readline

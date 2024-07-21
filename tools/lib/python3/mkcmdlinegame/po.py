@@ -23,7 +23,7 @@ except ImportError:
           "  use NOPOLIB= environment variable )\n")
     exit(1)
 
-from . import get_content, onlyfiles, onlydirs, write
+from .utils import get_content, onlyfiles, onlydirs, write
 from .build_params import DEFAULT_LANGS, po_perimeter
 
 RE_NOPO_JS = r"\s*('?|\"?)nopo\1\s*:\s*\[(('|\")(text|name)\3,?)+\]\s*"

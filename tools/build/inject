@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
+"""
+Put all textual assets in a unique html file
+"""
 import sys
-from os.path import join, dirname, realpath
-sys.path.append(
-    join(dirname(dirname(realpath(__file__))),'lib','python3')
-)
-from _terminal_game_common.html import inject
+try:
+    import mkcmdlinegame
+except ImportError:
+    from os.path import join, dirname, realpath
+    sys.path.append(
+        join(dirname(dirname(realpath(__file__))), 'lib', 'python3')
+    )
+    import mkcmdlinegame
 
-if __name__ == '__main__':
+def _main():
     htmlfile = sys.argv[1]
     cssfile = sys.argv[2]
     jsfile = sys.argv[3]
     targetfile = sys.argv[4]
 
-    inject(htmlfile, cssfile, jsfile, targetfile)
+    mkcmdlinegame.html.inject(htmlfile, cssfile, jsfile, targetfile)
+
+if __name__ == '__main__':
+    _main()

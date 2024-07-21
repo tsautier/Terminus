@@ -10,8 +10,8 @@ import argparse
 sys.path.append(
     join(dirname(dirname(realpath(__file__))),'lib','python3')
 )
-from _terminal_game_common import onlydirs, onlyfiles
-from _terminal_game_common.po import \
+from mkcmdlinegame import onlydirs, onlyfiles
+from mkcmdlinegame.po import \
     find_po_references, lang_from_fname, po_inject
 
 def main(gamedir, src):

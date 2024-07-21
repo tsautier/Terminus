@@ -6,13 +6,19 @@ import sys
 from os.path import isfile, join, realpath, relpath, basename, dirname
 from polib import pofile
 import argparse
-sys.path.append(
-    join(dirname(dirname(realpath(__file__))),'lib','python3')
-)
-from _terminal_game_common import onlydirs, onlyfiles
-from _terminal_game_common.po import \
-    find_po_references, lang_from_fname, fetch_langs, _get_po_comment
-from _terminal_game_common.colors import YELLOW, RYELLOW
+for attempt in range(2):
+    try:
+        from mkcmdlinegame import onlydirs, onlyfiles
+        from mkcmdlinegame.po import \
+            find_po_references, fetch_langs, _get_po_comment
+        from mkcmdlinegame.colors import YELLOW, RYELLOW
+    except ImportError:
+        sys.path.append(
+            join(dirname(dirname(realpath(__file__))), 'lib', 'python3')
+        )
+        continue
+    break
+
 
 def _po_check(d, langs, rec=False, po_source=False):
     po_refs = find_po_references(d)
@@ -21,7 +27,7 @@ def _po_check(d, langs, rec=False, po_source=False):
     extra = []
     comments = []
     for lang in langs:
-        msgids_found = False
+        # msgids_found = False
         po_orig = False
         po_fname = join(d, '%s.po' % lang)
         if isfile(po_fname):
@@ -34,7 +40,7 @@ def _po_check(d, langs, rec=False, po_source=False):
                 comment = _get_po_comment(entry)
                 extra.append(
                     YELLOW % "[%s] %s" % (lang, msg_id) +
-                    ('\n%s\n%s' %( comment, entry.msgstr ) if comment else '')
+                    ('\n%s\n%s' % (comment, entry.msgstr) if comment else '')
                 )
         else:
             lines += ['Oops ! Missing file %s' % relpath(po_fname)]
@@ -48,7 +54,7 @@ def _po_check(d, langs, rec=False, po_source=False):
                 if comment:
                     comments.append(
                         YELLOW % "[%s] %s" % (lang, msg_id) +
-                        '\n%s\n%s' %( comment, entry_tgt.msgstr )
+                        '\n%s\n%s' % (comment, entry_tgt.msgstr)
                     )
                 if not entry_tgt.msgstr:
                     if entry_src and entry_src.msgstr:
@@ -155,7 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('langs', metavar='lang[.po]', nargs='*')
     parser.add_argument('-rec', help="recursive", action='store_true')
     parser.add_argument('-g', help="global", action='store_true')
-    args=parser.parse_args()
+    args = parser.parse_args()
 
     for i, v in enumerate(args.langs):
         if v.endswith('.po'):

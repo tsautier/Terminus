@@ -5,14 +5,15 @@
 import sys
 import os
 from os import makedirs, symlink, remove
-from os.path import join, dirname, realpath, isdir, relpath, islink
-sys.path.append(
-    join(dirname(dirname(realpath(__file__))),'lib','python3')
-)
-from _terminal_game_common.nodejs import _install_deps
-from _terminal_game_common.build import \
-    build, transpilejs, minifyjs, postcss, all_in_one_html
-from _terminal_game_common.build_params import get_project_parameters
+from os.path import dirname, isdir, relpath, islink
+try:
+    import mkcmdlinegame
+except ImportError:
+    from os.path import join, realpath
+    sys.path.append(
+        join(dirname(dirname(realpath(__file__))), 'lib', 'python3')
+    )
+    import mkcmdlinegame
 
 USAGE = (
     "Build/export the game in html/css/js format.\n"
@@ -41,48 +42,50 @@ USAGE = (
 
 
 def rsymlink(src, dst):
+    """ make portable symbolic link with a relative path """
     orig = relpath(src, dirname(dst))
     if os.environ.get('DEBUG', False):
-        print('symlink %s to %s'% (orig, dst))
+        print('symlink %s to %s' % (orig, dst))
     symlink(orig, dst)
 
 
 def _link_dirs_in_project(params, dirs):
-    for n in dirs:
-        if not isdir(params['%s_dir' % n]):
-            if not isdir(params['target_%s_dir' % n]):
-                makedirs(params['target_%s_dir' % n])
-            if islink(params['%s_dir' % n]):
-                remove(params['%s_dir' % n])
-            rsymlink(params['target_%s_dir' % n], params['%s_dir' % n])
+    for dname in dirs:
+        if not isdir(params['%s_dir' % dname]):
+            if not isdir(params['target_%s_dir' % dname]):
+                makedirs(params['target_%s_dir' % dname])
+            if islink(params['%s_dir' % dname]):
+                remove(params['%s_dir' % dname])
+            rsymlink(params['target_%s_dir' % dname], params['%s_dir' % dname])
+
 
 def _main(gamedir, tgt, opts):
     if not isdir(tgt):
         makedirs(tgt)
-    params = get_project_parameters(gamedir, tgt)
+    params = mkcmdlinegame.build_params.get_project_parameters(gamedir, tgt)
     _link_dirs_in_project(params, ['js', 'img', 'sound', 'music', 'engine'])
     only = '-only' in opts
     if os.environ.get('DEBUG', False):
         from pprint import pprint
         pprint(params)
     if not only:
-        _install_deps()
-        build_data = build(params)
+        mkcmdlinegame.nodejs.install_deps()
+        build_data = mkcmdlinegame.build.build(params)
         if not build_data:
             exit(1)
         if '-t' in opts:
             build_data['line_follower'].write_trace()
     if '-transpile' in opts or (
             not only and ('-minify' in opts or '-html' in opts)):
-        transpilejs(params)
+        mkcmdlinegame.build.transpilejs(params)
     if '-css' in opts or (
             not only and ('-html' in opts or '-minifyjs' in opts)):
-        postcss(params)
+        mkcmdlinegame.build.postcss(params)
     if '-minify' in opts or (
             not only and '-html' in opts):
-        minifyjs(params)
+        mkcmdlinegame.build.minifyjs(params)
     if '-html' in opts or '-all' in opts:
-        all_in_one_html(params)
+        mkcmdlinegame.build.all_in_one_html(params)
 
 
 if __name__ == '__main__':
@@ -98,7 +101,8 @@ if __name__ == '__main__':
             TARGET = arg
         else:
             OPTS[arg] = arg
-    if '-h' in sys.argv[1:] or '--help' in sys.argv[1:] or not (GAMEDIR and TARGET):
+    if '-h' in sys.argv[1:] or '--help' in sys.argv[1:] or not (
+            GAMEDIR and TARGET):
         print(USAGE)
         exit(1)
     _main(GAMEDIR, TARGET, OPTS)

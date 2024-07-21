@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+"""
+Generate pot file from po file
+"""
 import os
 import re
 import sys
@@ -9,35 +12,40 @@ USAGE = (
     "Generate pot file from po file"
 ). format(os.path.basename(sys.argv[0]))
 
-if __name__ == '__main__':
-    if len(sys.argv) < 1 or sys.argv[1] in ('-h', '--help'):
+
+def _main():
+    if sys.argv[1:] or sys.argv[1] in ('-h', '--help'):
         print(USAGE)
         exit(1)
 
-    ORIG = sys.argv[1]
-    fname = os.path.basename(ORIG)
-    dirname = os.path.dirname(ORIG)
-    TGT = (
+    orig = sys.argv[1]
+    fname = os.path.basename(orig)
+    dirname = os.path.dirname(orig)
+    tgt = (
         sys.argv[2] if len(sys.argv) > 2
         else dirname + os.path.sep + (
-            re.sub(r"\.[a-zA-Z_]+\.po",".pot", fname)
+            re.sub(r"\.[a-zA-Z_]+\.po", ".pot", fname)
             if re.match(r".*\..*\.po", dirname) else "_.pot"
         ))
 
-    po = polib.pofile(ORIG)
-    if not po:
+    po_content = polib.pofile(orig)
+    if not po_content:
         exit(1)
 
     pot = polib.POFile()
-    pot.metadata = po.metadata
-    for entry in po:
+    pot.metadata = po_content.metadata
+    for entry in po_content:
         if not entry.comment:
             com = entry.msgstr
             if len(com.split("\n")) > 2 and not re.match(r".*({{|%s)", com):
-               com = "\n".join(com.split("\n")[0:2]) + " ..."
-            entry.comment = '[%s] "%s"' % (LANG,
-                    com.replace("\n",'\\n').replace('"','\\"'))
+                com = "\n".join(com.split("\n")[0:2]) + " ..."
+            entry.comment = '[%s] "%s"' % (
+                "LANG", com.replace("\n", '\\n').replace('"', '\\"'))
         entry.msgstr = ''
         pot.append(entry)
 
-    pot.save(TGT)
+    pot.save(tgt)
+
+
+if __name__ == '__main__':
+    _main()

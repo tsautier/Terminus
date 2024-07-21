@@ -6,7 +6,7 @@
 import os
 from os.path import basename, join
 from re import match
-from . import copy, copy_dir, ensure_dir, onlydirs, onlyfiles, write
+from .utils import copy, copy_dir, ensure_dir, onlydirs, onlyfiles, write
 from .assets import Assets
 from .credit import EXTRA_CREDITS, LANG_CREDITS, CREDITS_DATA, parse_credit
 from .build_params import (

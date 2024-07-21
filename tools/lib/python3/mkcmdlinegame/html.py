@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # encoding: utf-8
+"""
+HTML tools :
+ - to extract infos from html files
+ - to produce html file
+"""
 from html.parser import HTMLParser
 from os.path import isfile, join, dirname, realpath
 import re
-from . import get_content
+from .utils import get_content
 from .logging import print_err, print_info
 
 
@@ -11,6 +16,9 @@ class HTMLParserExtracter(HTMLParser):
     """ parse html to get related js and css files """
     list_src = []
     list_css = []
+
+    def error(self, message):
+        print(str(message))
 
     def handle_starttag(self, tag, attrs):
         """ handle tag start """
@@ -30,7 +38,7 @@ def _fetch_in_html(htmlfile):
             return parser
     else:
         print_err('%s not found' % htmlfile)
-        return None
+    return None
 
 
 def fetch_javascript_src(htmlfile):

@@ -1,6 +1,6 @@
 import re
 from ogaget.credit_file import parse as _just_parse_credit_file
-from . import get_content, spaced, write
+from .utils import get_content, spaced, write
 from .build_params import CREDIT_AUTHOR_KEYS, CREDIT_BY_LISTED_KEYS, \
     CREDIT_INFO_KEYS
 

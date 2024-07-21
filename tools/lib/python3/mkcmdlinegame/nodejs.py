@@ -9,7 +9,7 @@ from os import system, symlink, chdir, getcwd
 from os.path import join, realpath, dirname, islink, isdir, isfile, relpath
 from shutil import which
 import subprocess
-from . import concatenated, copy
+from .utils import concatenated, copy
 from .build_params import BUILD_TOOLS
 from .logging import print_info, print_err
 
@@ -26,7 +26,7 @@ if NODEJS:
 else:
     DEBUG_SKIP = ['npm', 'babel', 'uglifyjs', 'postcss']
 
-def _install_deps(force=False, update=True):
+def install_deps(force=False, update=True):
     if 'npm' in DEBUG_SKIP:
         return True
     global NODEJS_INIT_OK

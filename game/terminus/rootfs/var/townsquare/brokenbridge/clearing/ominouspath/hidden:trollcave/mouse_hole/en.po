@@ -1,0 +1,11 @@
+#
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "room_mouse_hole"
+msgstr ""
+
+msgid "room_mouse_hole_text"
+msgstr ""

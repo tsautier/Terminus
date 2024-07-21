@@ -19,6 +19,9 @@ all: build ## Generate all html files in all languages
 devenv: ## Source .bash_profile in order to use dev tools
 	./devenv.sh ${GAME}
 
+lint:
+	find tools -name '*.py' | xargs pylint3
+
 server:
 	./tools/start_game_server.sh ${GAME}
 

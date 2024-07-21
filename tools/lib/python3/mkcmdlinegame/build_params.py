@@ -9,7 +9,7 @@ from os.path import split, join, isfile, isdir, dirname, realpath
 import sys
 from ogaget.credit_file import parse
 from .logging import print_err
-from . import merge_dict
+from .utils import merge_dict
 TOOLS = dirname(dirname(sys.argv[0]))
 BUILD_TOOLS = join(TOOLS, 'build')
 

@@ -8,7 +8,6 @@ from os import listdir, environ, mkdir, system
 from os.path import isdir, isfile, islink, join, basename, dirname, relpath
 import re
 import shutil
-import sys
 from .logging import print_info
 
 
@@ -27,7 +26,7 @@ def merge_dict(orig_dict, new_dict):
 
     for key in new_dict:
         if (isinstance(new_dict[key], dict) and
-              isinstance(orig_dict.get(key), dict)):
+                isinstance(orig_dict.get(key), dict)):
             merge_dict(orig_dict[key], new_dict[key])
         else:
             orig_dict[key] = new_dict[key]
@@ -40,7 +39,7 @@ def get_content(fname, ext='', rec=False, lvl=0, join_sep=None):
         if fname.endswith(ext):
             with open(fname, "r") as buf:
                 ret = buf.readlines()
-    elif isdir(fname) and (lvl==0 or rec):
+    elif isdir(fname) and (lvl == 0 or rec):
         for child in listdir(fname):
             ret += get_content(
                 join(fname, child),
@@ -59,7 +58,7 @@ def write(fname, lines, append=False, title=''):
     """
     if lines:
         print_info("%14s %s %s", title, '>>' if append else '> ',
-                relpath(fname))
+                   relpath(fname))
     with open(fname, ("a" if append else "w")) as buf:
         buf.writelines(lines)
 
@@ -123,7 +122,6 @@ def copy_dir(orig, tgt, subdir=False, params=False):
 
     if orig == (join(tgt, subdir) if subdir else tgt):
         return True
-
 
     print(orig)
     if isdir(orig):
@@ -222,8 +220,8 @@ def rm_trailing_comma(line):
 
 
 def spaced(stra, strb):
-   """ add a space between 2 strings """
-   if stra and strb:
-       return stra + ' ' + strb
-   else:
-       return stra or strb
+    """ add a space between 2 strings """
+    if stra and strb:
+        return stra + ' ' + strb
+    else:
+        return stra or strb

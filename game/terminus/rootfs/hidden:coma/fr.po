@@ -1,0 +1,20 @@
+#
+msgid ""
+msgstr ""
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "room_coma"
+msgstr ""
+
+msgid "item_jellycandy_text"
+msgstr ""
+
+msgid "item_jellycandy"
+msgstr ""
+
+msgid "cmd_cp_unknown"
+msgstr ""
+
+msgid "room_coma_text"
+msgstr ""

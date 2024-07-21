@@ -1,1 +1,6 @@
-../lib/python3/ogaget/ogaget
+#!/bin/sh
+MODULENAME="$(basename $(realpath "$0"))"
+MODULEPATH="$(dirname $(realpath "$0"))"
+export PYTHONPATH="$(dirname $(dirname $(realpath "$0")))"
+
+python3 -m "${MODULENAME}" $@

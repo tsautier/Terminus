@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
+"""
+Fix metadata in po file
+"""
 import sys
 from os.path import join, dirname, realpath, basename
-sys.path.append(
-    join(dirname(dirname(realpath(__file__))),'lib','python3')
-)
-from _terminal_game_common import write, onlyfiles
-from _terminal_game_common.po import get_po_content, gen_po_header, lang_from_fname
+for attempt in range(2):
+    try:
+        from mkcmdlinegame.po import (
+            get_po_content, gen_po_header, lang_from_fname
+        )
+        from mkcmdlinegame import write, onlyfiles
+    except ImportError:
+        sys.path.append(
+            join(dirname(dirname(realpath(__file__))), 'lib', 'python3')
+        )
+        continue
+    break
 
 
-def main(d):
-    for f in onlyfiles(d, ext='.po', rec=True):
-        fname = basename(f)
+def _main(dname):
+    for fpath in onlyfiles(dname, ext='.po', rec=True):
+        fname = basename(fpath)
         lang = lang_from_fname(fname)
 
         if lang:
-            write(f, gen_po_header(lang) + ["\n"] + get_po_content(f))
+            write(fpath, gen_po_header(lang) + ["\n"] + get_po_content(fpath))
 
 
 if __name__ == '__main__':
@@ -22,4 +32,4 @@ if __name__ == '__main__':
         print('Usage: %s <dir>' % sys.argv[0])
         exit(1)
 
-    main(sys.argv[1])
+    _main(sys.argv[1])

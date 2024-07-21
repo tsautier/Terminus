@@ -5,7 +5,7 @@
 """
 from os.path import basename, dirname
 import re
-from . import get_content, add_comma
+from .utils import get_content, add_comma
 from .build_params import (
     ASSET_TYPES, RE_CONTENT, ASSET_FORMAT, RE_ASSET_JS,
     RE_START_ATTR_FILE, RE_END_ATTR_FILE

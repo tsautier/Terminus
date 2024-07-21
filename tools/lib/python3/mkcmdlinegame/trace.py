@@ -6,7 +6,7 @@
 """
 from os import listdir
 from os.path import isfile, isdir, join, relpath
-from . import \
+from .utils import \
     add_comma as _add_comma, \
     rm_trailing_comma as _rm_trailing_comma,\
     print_info, write
@@ -75,7 +75,7 @@ class LineFollower(object):
         """
         if lines_followed:
             print_info("%14s %s %s", title, '>>',
-                    relpath(self.fname))
+                       relpath(self.fname))
         for line_followed in lines_followed:
             if len(line_followed) == 2:
                 orig, lines = line_followed

@@ -72,5 +72,3 @@ A beginning of answer :
 | cd      | Access a directory (the one in args ) | | (directory) |
 | grep    | reveal the lines in a stream or a file that match a pattern ||pattern file|
 
-
-

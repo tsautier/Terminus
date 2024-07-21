@@ -9,8 +9,8 @@ from os.path import join, dirname, realpath
 sys.path.append(
     join(dirname(dirname(realpath(__file__))),'lib','python3')
 )
-from _terminal_game_common import _regexp
-from _terminal_game_common.po import move_po_msgs, fetch_langs, po_list_msgids
+from mkcmdlinegame import _regexp
+from mkcmdlinegame.po import move_po_msgs, fetch_langs, po_list_msgids
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)

@@ -4,7 +4,7 @@
    Register assets and read credit files
 """
 from os.path import basename, realpath, relpath
-from . import onlyfiles
+from .utils import onlyfiles
 from .build_params import RE_CONTENT, ASSET_TYPES
 from .jspart import protect_js_property_key
 from .logging import print_err
