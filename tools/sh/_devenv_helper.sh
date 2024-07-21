@@ -18,8 +18,8 @@ _desc_var(){
 }
 
 
-help_usage(){
-  echo -e """${_HELP_DEV_}""" | less
+devenv_help(){
+  echo -e """${_HELP_DEV_}\n(to show again this, type 'devenv_help')"""
 }
 
 _finalize_help(){

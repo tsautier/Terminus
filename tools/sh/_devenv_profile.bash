@@ -1,4 +1,7 @@
-if [ "${FS:-}" -a "${GAMEDIR:-}" ]; then
+if [ "${FS:-}" -a "${GAME:-}" ]; then
+  true
+else
+  echo "(exit)"
   exit
 fi
 
@@ -9,7 +12,6 @@ if [ -f ~/.bashrc ]; then source ~/.bashrc; else source /etc/bash.bashrc; fi
 export PATH="$TOOLS/gamedev:$TOOLS/build:$PATH"
 # Provide
 #  setters : _desc_section _desc_cmd
-# and command help_usage
 . ${TOOLS}/sh/_devenv_helper.sh
 
 
@@ -122,29 +124,29 @@ alias mklink="_mk_gen_item link"
 
 _desc_cmd 'mkpo lang' create po files for lang in all rooms
 mkpo(){
-[ -n "$1" ] && potouch $GAMEDIR $1 -auto
+[ -n "$1" ] && potouch ${GAME_PATH} $1 -auto
 }
 
 _desc_cmd 'build' compile for testing
 build(){
-  ( cd $FRAMEWORK_ROOT; $(which build) $GAMEDIR _build/$(basename $GAMEDIR))
+  ( cd ${FRAMEWORK_ROOT}; $(which build) ${GAME_PATH} _build/$(basename ${GAME_PATH}) $*)
 }
 
 _desc_cmd 'lint' compile for lint check
 lint(){
-  ( cd $FRAMEWORK_ROOT;  $(which lint) $GAMEDIR -v --no-style $*  2>&1 | tee .lint_errors)
+  ( cd ${FRAMEWORK_ROOT};  $(which lint) ${GAME_PATH} -v --no-style $*  2>&1 | tee .lint_errors)
 }
 
 _desc_cmd 'fixlint' helper for fixing lint
 fixlint(){
-  ( cd $FRAMEWORK_ROOT; $(which lint) $GAMEDIR -v -live -fix --no-style $*  2>&1 | tee .lint_errors)
+  ( cd ${FRAMEWORK_ROOT}; $(which lint) ${GAME_PATH} -v -live -fix --no-style $*  2>&1 | tee .lint_errors)
 }
 
 _desc_cmd 'lintlocal' simple lint check on current directory
 lintlocal(){
   tgt=$(realpath .)
   (
-  cd $FRAMEWORK_ROOT
+  cd ${FRAMEWORK_ROOT}
   lint.py $tgt -local -fix $* -vars Blob,vt,mesg,Builtin,learn,state,_,global_fire_done | grep -v ':1: Expected'
   )
 }
@@ -152,7 +154,7 @@ lintlocal(){
 _desc_cmd 'start_game_server' run webroot as server
 start_game_server(){
   (
-  cd $FRAMEWORK_ROOT
+  cd ${FRAMEWORK_ROOT}
   DISCRETION=${DISCRETION:-t} GAME=${GAME:-} sh $TOOLS/start_game_server.sh
   )
 }
@@ -192,4 +194,4 @@ _complete_pomove() {
 complete -F _complete_pomove pomove
 
 
-help_usage
+devenv_help

@@ -19,7 +19,7 @@ serve(){
   fi
   _CWD=$PWD
   cd ${SERVPATH}
-  python -mSimpleHTTPServer ${SERVPORT} > server.log 2>&1 & PID=$!
+  python3 -mhttp.server ${SERVPORT} > server.log 2>&1 & PID=$!
   cd ${_CWD}
   echo $PID > ${PIDFILE}
   wait $PID

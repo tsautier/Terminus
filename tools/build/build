@@ -68,8 +68,15 @@ def _main(gamedir, tgt, opts):
     if os.environ.get('DEBUG', False):
         from pprint import pprint
         pprint(params)
-    if not only:
+    if (
+            '-transpile' in opts
+            or (not only and ('-minify' in opts or '-html' in opts))
+            or (not only and ('-html' in opts or '-minifyjs' in opts))
+            or  (not only and '-html' in opts)
+            or '-all' in opts
+            ):
         mkcmdlinegame.nodejs.install_deps()
+    if not only:
         build_data = mkcmdlinegame.build.build(params)
         if not build_data:
             exit(1)
