@@ -13,16 +13,16 @@ from .utils import \
 from .jspart import get_attrs_content as _get_attrs_content, get_related_var
 
 
-class LineFollower(object):
+class LineFollower:
     """ implement a file writer that store trace """
     line_follower = []
     buf = None
     fname = None
     varnames = []
 
-    def __init__(self, fname):
+    def __init__(self, fname, encoding="utf-8"):
         self.fname = fname
-        self.buf = open(fname, "w")
+        self.buf = open(fname, "w", encoding=encoding)
         self.buf.flush()
 
     def get(self, line):
@@ -77,14 +77,13 @@ class LineFollower(object):
             print_info("%14s %s %s", title, '>>',
                        relpath(self.fname))
         for line_followed in lines_followed:
-            if len(line_followed) == 2:
-                orig, lines = line_followed
-            elif len(line_followed) == 3:
-                orig, lines, varname = line_followed
+            orig, lines = line_followed[:2]
+            if len(line_followed) >= 3:
+                varname = line_followed[2]
                 if varname:
                     self.varnames.append(varname)
             flines = [
-                "%s\n" % s
+                f"{s}\n"
                 for s in "".join(lines).split("\n")
                 if s]
             self.buf.writelines(flines)
@@ -101,9 +100,9 @@ class LineFollower(object):
         cnt = 0
         for orig, lnum, content in self.line_follower:
             cnt += 1
-            lines.append("%s|%s|%s|%s" % (cnt, orig, lnum, content))
+            lines.append(f"{cnt}|{orig}|{lnum}|{content}")
 
-        write("%s.trace" % self.fname, lines, title='trace')
+        write(f"{self.fname}.trace", lines, title='trace')
 
 
 def follow_as(orig, lines):
@@ -111,7 +110,7 @@ def follow_as(orig, lines):
     return [(orig, lines)] if lines else []
 
 
-def get_content(fpath, ext=''):
+def get_content(fpath, ext='', encoding='utf-8'):
     """
        get content in the file or directory,
        with the right name
@@ -119,14 +118,14 @@ def get_content(fpath, ext=''):
     ret = []
     if isinstance(fpath, list):
         for fname in fpath:
-            ret += get_content(fname, ext=ext)
+            ret += get_content(fname, ext=ext, encoding=encoding)
     elif isfile(fpath):
         if fpath.endswith(ext):
-            with open(fpath, "r") as buf:
+            with open(fpath, "r", encoding=encoding) as buf:
                 ret = [(fpath, buf.readlines())]
     elif isdir(fpath):
         for fname in sorted(listdir(fpath)):
-            ret += get_content(join(fpath, fname), ext=ext)
+            ret += get_content(join(fpath, fname), ext=ext, encoding=encoding)
     return ret
 
 

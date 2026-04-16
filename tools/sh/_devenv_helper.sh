@@ -17,14 +17,20 @@ _desc_var(){
 "
 }
 
-
 devenv_help(){
   echo -e """${_HELP_DEV_}\n(to show again this, type 'devenv_help')"""
+}
+
+_deffunc(){
+    if alias $1 2> /dev/null; then
+        unalias $1
+    fi
 }
 
 _finalize_help(){
   unset _desc_section
   unset _desc_cmd
+  unset _desc_var
+  unset _deffunc
   unset _finalize_help
 }
-

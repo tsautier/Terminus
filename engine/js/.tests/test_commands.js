@@ -1,6 +1,6 @@
 addTest(function (next) {
   console.log('TEST INIT')
-  vt.setContext(new Context({ 'sure': { groups: ['user'], address: 'DTC' } }, 'sure', $home, {}))
+  vt.setContext(new Context({ 'sure': { groups: ['user'], address: 'Ctx-Addr-0' } }, 'sure', $home, {}))
   vt.enable_input()
   next()
 })

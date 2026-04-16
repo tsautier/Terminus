@@ -1,9 +1,8 @@
 var vt = (new VTerm(dom.Id('term'))).addon(VTermImages, RES.img)
 var invidiv = addEl(vt.cmdinput, 'pre', { class: 'invidiv' })
-var cursorblock = addEl(vt.cmdinput, 'div', {
-  class: 'cursorblock'
-})
-CursorListener.push((k, pos) => {
+var cursorblock = addEl(vt.cmdinput, 'div', { class: 'cursorblock' })
+
+vt.onCursorChange((k, pos) => {
   invidiv.innerText = vt.input.value.slice(0, pos)
   cursorblock.innerText = (vt.input.value[pos] || ' ').replace(' ', ' ')
   cursorblock.style.left = (vt.input.offsetLeft + invidiv.offsetWidth) + 'px'
@@ -172,7 +171,6 @@ Game.prototype = {
           vt.mute = 0
           // vt.playMusic('story')
           vt.enableInput()
-          CursorListener.fire() // FIXME add automatically a start... the pd come from the initialisation sequence...
           // autoShuffleLine(vt, '# ' + _('press_enter'), 0.9, 0.1, 8, 166, null, 10)
           window.onbeforeunload = function (e) {
             return 'Quit the game ?'

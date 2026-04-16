@@ -1,3 +1,7 @@
+
+Engine:
+ - (re)mettre l'input en pur javascript  //  possibilité de choisir l'input --> class javascript qui ressembre à un html input
+
 Traduction:
  - consolider le texte en 'fr' (relecture à faire)
  - ajouter en commentaires le contexte du message (chemin -automatique- + commentaire explicatif) dans le '.po' regroupant toutes les traductions, et rendre ce dernier plus facile à réutiliser

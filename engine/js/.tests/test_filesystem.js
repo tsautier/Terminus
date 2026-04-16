@@ -1,5 +1,5 @@
 addTest(function (next) {
-  vt.setContext(new Context({ 'sure': { groups: ['user'], address: 'DTC' } }, 'sure', $home, {}))
+  vt.setContext(new Context({ 'sure': { groups: ['user'], address: 'CtxAddr-0' } }, 'sure', $home, {}))
   vt.context.addGroup('dir')
   vt.context.addGroup('pwd')
   vt.context.addGroup('touch')

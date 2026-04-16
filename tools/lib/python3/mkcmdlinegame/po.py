@@ -6,6 +6,7 @@
 """
 import re
 import os
+import sys
 from os.path import basename, isfile, join, relpath
 
 try:
@@ -14,14 +15,13 @@ try:
     else:
         def pofile(fpath):
             """ useless """
-            print("%s ignored" % relpath(fpath))
-            return None
+            print(f"{relpath(fpath)} ignored")
 except ImportError:
     print("\nThis script requires polib >= 1.0.0\n\n"
           "To fix this, run: pip install --upgrade polib\n\n"
           "( If you don't need to parse po files,\n"
           "  use NOPOLIB= environment variable )\n")
-    exit(1)
+    sys.exit(1)
 
 from .utils import get_content, onlyfiles, onlydirs, write
 from .build_params import DEFAULT_LANGS, po_perimeter
@@ -47,19 +47,19 @@ class POLines():
             self.polines[lang] += po_content
 
     def get(self):
-        """ get dict of lang -> msgid -> msgstr """
-        return [(lang, self.polines[lang]) for lang in self.polines.keys()]
+        """ get list of [lang, {msgid -> msgstr}] """
+        return list(self.polines.items())
 
     def missing(self, typ, name):
         """ get missing msgids for a specific element typ_name """
         pofound = []
         prev = ''   # ensure there is a msgid, and msgstr
         conclude = ''
-        for lang in self.polines:
-            for line in self.polines[lang]:
+        for _, polines in self.polines.items():
+            for line in polines:
                 if len(pofound) == 2:
                     break
-                elif conclude:
+                if conclude:
                     if line.strip() or prev:
                         if conclude not in pofound:
                             pofound.append(conclude)
@@ -69,20 +69,19 @@ class POLines():
                     conclude = prev
                     if line == 'msgstr ""\n':
                         prev = ''
-                elif line == 'msgid "%s_%s"\n' % (typ, name):
+                elif line == f'msgid "{typ}_{name}"\n':
                     prev = 'name'
-                elif line == 'msgid "%s_%s_text"\n' % (typ, name):
+                elif line == f'msgid "{typ}_{name}_text"\n':
                     prev = 'text'
-        nopo = ["'%s'" % a for a in set(['text', 'name']) - set(pofound)]
+        nopo = [f"'{a}'" for a in set(['text', 'name']) - set(pofound)]
         return nopo
 
 
 def _get_po_comment(entry):
-    if entry.comment or entry.tcomment:
-        return (
-            "#" + "\n# ".join(entry.comment.split('\n')) + ' ' +
-            "\n# ".join(entry.tcomment.split('\n'))
-        )
+    return (
+        "#" + "\n# ".join(entry.comment.split('\n')) + ' ' +
+        "\n# ".join(entry.tcomment.split('\n'))
+    ) if (entry.comment or entry.tcomment) else ""
 
 
 def _get_first_po_content_line(lines):
@@ -106,7 +105,7 @@ def gen_po_header(lang):
     return ['msgid ""\n',
             'msgstr ""\n',
             '"Content-Type: text/plain; charset=UTF-8\\n"\n',
-            '"Language: %s\\n"\n' % lang]
+            f'"Language: {lang}\\n"\n']
 
 
 def get_po_content(fname):
@@ -163,9 +162,9 @@ def find_po_references(path):
                 pass
             else:
                 po_id = fname[:-3].replace(':', '_')
-                if not 'name' in nopo:
+                if 'name' not in nopo:
                     msgids.append(po_id)
-                if not 'text' in nopo:
+                if 'text' not in nopo:
                     msgids.append(po_id + '_text')
     return msgids
 
@@ -191,7 +190,7 @@ def po_inject(gamedir, lang, po_source):
     if not po_perimeter(gamedir):
         return
     po_refs = find_po_references(gamedir)
-    for po_fname in onlyfiles(gamedir, ext='%s.po' % lang):
+    for po_fname in onlyfiles(gamedir, ext=f'{lang}.po'):
         # try:
         po_orig = pofile(po_fname)
         keys = []
@@ -200,30 +199,28 @@ def po_inject(gamedir, lang, po_source):
             new_entry = po_source.find(entry.msgid)
             if new_entry and new_entry.msgstr:
                 if entry.msgstr != new_entry.msgstr:
-                    print('%s updated' % entry.msgid)
+                    print(f'{entry.msgid} updated' % entry.msgid)
                     entry.msgstr = new_entry.msgstr
 
                 for attr in ('comment', 'tcomment'):
                     old_comment = getattr(entry, attr)
                     new_comment = getattr(new_entry, attr)
                     if not old_comment and new_comment:
-                        print('comment added   on %s\n>> %s' % (
-                            entry.msgid, new_comment))
+                        print(f'comment added   on {entry.msgid}\n>> {new_comment}')
                         setattr(entry, attr, new_comment)
                     elif old_comment and not new_comment:
-                        print('comment deleted on %s\n<< %s' % (
-                            entry.msgid, new_comment))
+                        print(f'comment deleted on {entry.msgid}\n<< {new_comment}')
                         setattr(entry, attr, new_comment)
                     elif old_comment != new_comment:
-                        print('comment updated on %s\n<< %s\n>> %s' % (
-                            entry.msgid, old_comment, new_comment))
+                        print(f'comment updated on {entry.msgid}\n'
+                              f'<< {old_comment}\n>> {new_comment}')
                         setattr(entry, attr, new_comment)
 
         for msgid in list(set(po_refs) - set(keys)):
             # print(msgid)
             entry_src = po_source.find(msgid)
             if entry_src and entry_src.msgstr:
-                print('%s added' % msgid)
+                print(f'{msgid} added')
                 po_orig.append(entry_src)
         po_orig.save()
         # except:
@@ -237,9 +234,9 @@ def po_list_msgids(gamedir, langs, with_po_refs=False, rec=False):
     """ list msgids """
     msgids = set([])
     for lang in langs:
-        for po_fname in onlyfiles(gamedir, ext='%s.po' % lang, rec=rec):
+        for po_fname in onlyfiles(gamedir, ext=f'{lang}.po', rec=rec):
             po_source = pofile(po_fname)
-            msgids |= set([e.msgid for e in po_source])
+            msgids |= set(e.msgid for e in po_source)
     if with_po_refs:
         msgids |= set(find_po_references(gamedir))
     ret = list(msgids)
@@ -249,11 +246,12 @@ def po_list_msgids(gamedir, langs, with_po_refs=False, rec=False):
 
 def po_get(gamedir, lang, msgid, with_file=False):
     """ get po entry in a project directory"""
-    for po_fname in onlyfiles(gamedir, ext='%s.po' % lang, rec=True):
+    for po_fname in onlyfiles(gamedir, ext=f'{lang}.po', rec=True):
         po_source = pofile(po_fname)
         entry = po_source.find(msgid)
         if entry:
             return entry if not with_file else (entry, po_fname)
+    return None
 
 
 def move_po_msgs(room, msgids, langs, tgt=False):
@@ -262,9 +260,9 @@ def move_po_msgs(room, msgids, langs, tgt=False):
     to call this function with tgt=False is equivalent to call a remove
     """
     for lang in langs:
-        fpath = join(room, '%s.po' % lang)
+        fpath = join(room, f'{lang}.po')
         if tgt:
-            ftgt = join(tgt, '%s.po' % lang)
+            ftgt = join(tgt, f'{lang}.po')
             if not isfile(ftgt):
                 write(ftgt, gen_po_header(lang) + ["\n"])
 
@@ -275,10 +273,10 @@ def move_po_msgs(room, msgids, langs, tgt=False):
                       for i in msgids
                       if entries.find(i)]:
             if tgt:
-                print('move %s to %s' % (entry.msgid, relpath(ftgt)))
+                print(f'move {entry.msgid} to {relpath(ftgt)}')
                 entriestgt.append(entry)
             else:
-                print('remove %s fron %s' % (entry.msgid, relpath(fpath)))
+                print(f'remove {entry.msgid} from {relpath(fpath)}')
             entries.remove(entry)
         if tgt:
             entriestgt.save()
@@ -328,16 +326,16 @@ def po2json(orig):
         if not entry.msgstr:
             continue
         if len(entry.msgid.split("\n")) > 2:
-            msgid = ('"%s"') % entry.msgid.replace('"', '\"')
+            msgid = '"' + entry.msgid.replace('"', '\"') + '"'
         else:
             msgid = entry.msgid.replace("\n", "")
             if " " in msgid:
-                msgid = ('"%s"') % msgid.replace('"', '\\"')
+                msgid = '"' + msgid.replace('"', '\\"') + '"'
         msgstr = entry.msgstr.replace(
             '\\', '\\\\').replace(
                 '\\"', '\\\\"').replace(
                     "\n", "\\n").replace(
                         '"', '\\"')
-        lines.append(str('%s:"%s",\n' % (msgid, msgstr)))
+        lines.append(str(f'{msgid}:"{msgstr}",\n'))
     lines.append("};\n")
     return lines

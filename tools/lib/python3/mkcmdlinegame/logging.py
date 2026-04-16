@@ -37,7 +37,7 @@ def silent_log():
 def print_err(msg, *keys):
     """ print an error (formatstr, keys,...) """
     if REDIR['error']:
-        REDIR['error'].write(RED + u"›o‹ nooo : " +
+        REDIR['error'].write(RED + "›o‹ nooo : " +
                              (msg % keys) + RESET + "\n")
         sleep(2)
 
@@ -45,7 +45,7 @@ def print_err(msg, *keys):
 def print_warn(msg, *keys):
     """ print a warning (formatstr, keys,...) """
     if REDIR['warning']:
-        REDIR['warning'].write(ORANGE + u"! " + (msg % keys) + RESET + "\n")
+        REDIR['warning'].write(ORANGE + "! " + (msg % keys) + RESET + "\n")
 
 
 def print_info(msg, *keys):

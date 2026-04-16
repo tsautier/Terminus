@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# encoding: utf-8
 """
    Contains common functions for buildsystem
    License : GPL
@@ -32,12 +31,12 @@ def merge_dict(orig_dict, new_dict):
             orig_dict[key] = new_dict[key]
 
 
-def get_content(fname, ext='', rec=False, lvl=0, join_sep=None):
+def get_content(fname, ext='', rec=False, lvl=0, join_sep=None, encoding="utf-8"):
     """ get content of file(s) with name ending with ext """
     ret = []
     if isfile(fname):
         if fname.endswith(ext):
-            with open(fname, "r") as buf:
+            with open(fname, "r", encoding=encoding) as buf:
                 ret = buf.readlines()
     elif isdir(fname) and (lvl == 0 or rec):
         for child in listdir(fname):
@@ -52,18 +51,18 @@ def get_content(fname, ext='', rec=False, lvl=0, join_sep=None):
     return ret
 
 
-def write(fname, lines, append=False, title=''):
+def write(fname, lines, append=False, title='', encoding="utf-8"):
     """
        write lines in the file fname
     """
     if lines:
         print_info("%14s %s %s", title, '>>' if append else '> ',
                    relpath(fname))
-    with open(fname, ("a" if append else "w")) as buf:
+    with open(fname, ("a" if append else "w"), encoding=encoding) as buf:
         buf.writelines(lines)
 
 
-def concatenated(files):
+def concatenated(files, encoding="utf-8"):
     """
        concatenate all files in one
        returns the path of the new file
@@ -71,11 +70,11 @@ def concatenated(files):
     if len(files) == 1:
         return files[0]
 
-    ftgt = join(dirname(files[0]), "_concatenated_%s_" % basename(files[0]))
+    ftgt = join(dirname(files[0]), f"_concatenated_{basename(files[0])}_")
 
-    with open(ftgt, "w") as tgt:
+    with open(ftgt, "w", encoding=encoding) as tgt:
         for fpath in [f for f in files if isfile(f)]:
-            with open(fpath, "r") as buf:
+            with open(fpath, "r", encoding=encoding) as buf:
                 tgt.writelines(buf.readlines())
     return ftgt
 
@@ -125,12 +124,8 @@ def copy_dir(orig, tgt, subdir=False, params=False):
 
     print(orig)
     if isdir(orig):
-        system(
-            'cp -rT %s %s' % (
-                orig,
-                join(tgt, subdir) if subdir else tgt
-            )
-        )
+        system(f'cp -rT {orig} {join(tgt, subdir) if subdir else tgt}')
+    return True
 
 
 def filelist(test):
@@ -223,5 +218,4 @@ def spaced(stra, strb):
     """ add a space between 2 strings """
     if stra and strb:
         return stra + ' ' + strb
-    else:
-        return stra or strb
+    return stra or strb

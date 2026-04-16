@@ -20,7 +20,7 @@ devenv: ## Source .bash_profile in order to use dev tools
 	./devenv.sh ${GAME}
 
 lint:
-	find tools -name '*.py' | xargs pylint3
+	find tools -name '*.py' | xargs pylint
 
 server:
 	./tools/start_game_server.sh ${GAME}

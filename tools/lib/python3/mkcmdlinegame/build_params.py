@@ -4,7 +4,6 @@
    Helper for project paramaters
    License : GPL
 """
-import os
 from os.path import split, join, isfile, isdir, dirname, realpath
 import sys
 from ogaget.credit_file import parse
@@ -17,7 +16,7 @@ DEFAULT_LANGS = []
 
 
 def get_project_parameters(gamedir, tgt=''):
-    """ get all project paramets (prepare most of things) """
+    """ get all project parameters (prepare most of things) """
     app_name = split(gamedir[:-1] if gamedir.endswith('/') else gamedir)[-1]
     params = {
         # SOURCE
@@ -32,6 +31,7 @@ def get_project_parameters(gamedir, tgt=''):
         'webroot_dir': 'webroot',
         # file project_dir/webroot_dir/index.html
         'index.html': 'index.html',
+        'encoding': 'utf-8',
         # dir  project_dir/ui_dir
         'ui_dir': 'ui',
         # dir  source_engine_dir (from git root)
@@ -57,17 +57,17 @@ def get_project_parameters(gamedir, tgt=''):
             'game.min.%s.js': 'game.min.%s.js',
             'min.css':  'game.min.css',
             'all_transpiled.%s.js': 'game.es5.%s.js',
-            'game.min.%s.html': '%s.%s.html' % (app_name, '%s')
+            'game.min.%s.html': f'{app_name}.%s.html'
         })
 
         params['target_engine_dir'] = params['source_engine_dir']
 
     # load project settings
     game_infos = parse(join(params['project_dir'],
-                                 params['game_info_file'])).get('params', {})
+                            params['game_info_file'])).get('params', {})
     users = parse(join(params['project_dir'],
-                                 params['game_users_file']), with_order=False)
-    merge_dict(game_infos, {'game': { 'users': users}})
+                       params['game_users_file']), with_order=False)
+    merge_dict(game_infos, {'game': {'users': users}})
     merge_dict(params, game_infos)
 
     # post processing on variable type
@@ -206,12 +206,12 @@ RE_CONTENT = {
     'dir': r"^(hidden:)?([^:]*)$",
     'hidden_dir': r"^hidden:(.*)$",
     'regular_dir': r"^[^:]*$",
-    'item': ASSET_FORMAT_RE.format(type='item', ext='\.js'),
-    'people': ASSET_FORMAT_RE.format(type='people', ext='\.js'),
-    'link': ASSET_FORMAT_RE.format(type='link', ext='\.js'),
-    'img': ASSET_FORMAT_RE.format(type='img', ext='\.[bijfgmnpsv]+'),
-    'music': ASSET_FORMAT_RE.format(type='music', ext='\.[3agmopvw]+'),
-    'sound': ASSET_FORMAT_RE.format(type='sound', ext='\.[3agmopvw]+')
+    'item': ASSET_FORMAT_RE.format(type='item', ext=r'\.js'),
+    'people': ASSET_FORMAT_RE.format(type='people', ext=r'\.js'),
+    'link': ASSET_FORMAT_RE.format(type='link', ext=r'\.js'),
+    'img': ASSET_FORMAT_RE.format(type='img', ext=r'\.[bijfgmnpsv]+'),
+    'music': ASSET_FORMAT_RE.format(type='music', ext=r'\.[3agmopvw]+'),
+    'sound': ASSET_FORMAT_RE.format(type='sound', ext=r'\.[3agmopvw]+')
 }
 
 ROOM_ATTR_FILE = '_attributes.js'
@@ -255,14 +255,13 @@ def test_param(params, name):
     if name == 'target_dir':
         parent = dirname(realpath(val))
         if not isdir(parent):
-            print_err("'%s' can't be located :\n"
-                      " %s  not found " % (name, parent))
+            print_err(f"'{name}' can't be located :\n"
+                      f" {parent}  not found ")
             return False
     elif name.endswith('_dir'):
         if not isdir(val):
             print_err(
-                "'%s' missing :\n %s %s not found " % (
-                    name, val, params.get(name + '_info', ''))
+                "'{name}' missing :\n {val} {params.get(name + '_info', '')} not found "
             )
             return False
     return True

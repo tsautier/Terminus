@@ -18,6 +18,7 @@ class HTMLParserExtracter(HTMLParser):
     list_css = []
 
     def error(self, message):
+        """ print error """
         print(str(message))
 
     def handle_starttag(self, tag, attrs):
@@ -29,35 +30,37 @@ class HTMLParserExtracter(HTMLParser):
                               if key == 'href' and val.endswith('.css')]
 
 
-def _fetch_in_html(htmlfile):
+def _fetch_in_html(htmlfile, encoding):
     if isfile(htmlfile):
-        with open(htmlfile, "r") as buf:
+        with open(htmlfile, "r", encoding=encoding) as buf:
             ret = "\n".join(buf.readlines())
             parser = HTMLParserExtracter()
             parser.feed(ret)
             return parser
     else:
-        print_err('%s not found' % htmlfile)
+        print_err(f"{htmlfile} not found")
     return None
 
 
-def fetch_javascript_src(htmlfile):
+def fetch_javascript_src(htmlfile, encoding="utf-8"):
     """ get list of path of js files referenced in html file """
-    parser = _fetch_in_html(htmlfile)
+    parser = _fetch_in_html(htmlfile, encoding)
     if parser:
         path = dirname(realpath(htmlfile))
         return [join(path, fpath) for fpath in parser.list_src]
+    return []
 
 
-def fetch_css_src(htmlfile):
+def fetch_css_src(htmlfile, encoding="utf-8"):
     """ get list of path of css files referenced in html file """
-    parser = _fetch_in_html(htmlfile)
+    parser = _fetch_in_html(htmlfile, encoding)
     if parser:
         path = dirname(realpath(htmlfile))
         return [join(path, fpath) for fpath in parser.list_css]
+    return []
 
 
-def inject(htmlfile, cssfile, jsfile, targetfile):
+def inject(htmlfile, cssfile, jsfile, targetfile, encoding="utf-8"):
     """ put js and css content in html file """
     print_info("%14s > %s", 'Inject all in html', targetfile)
 
@@ -68,7 +71,7 @@ def inject(htmlfile, cssfile, jsfile, targetfile):
     js_txt = "<script>%s</script>" % get_content(jsfile, join_sep="\n")
     html_lines = get_content(htmlfile)
 
-    with open(targetfile, "w") as buf:
+    with open(targetfile, "w", encoding=encoding) as buf:
         lines = [line.strip() for line in html_lines
                  if not re.match(r"\s*<!--.*-->\s*", line)]
         for line in lines:

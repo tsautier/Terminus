@@ -1,11 +1,19 @@
 class Key {
   constructor (e) {
     const k = this
-    k.ctrl = e.ctrlKey
-    k.shift = e.shiftKey
-    k.alt = e.altKey
-    k.key = e.key || String.fromCharCode(e.keyCode)
-    k.str = (k.key.length === 1 ? k.key : '')
+      if (e instanceof Event){
+        k.ctrl = e.ctrlKey
+        k.shift = e.shiftKey
+        k.alt = e.altKey
+        k.key = e.key || String.fromCharCode(e.keyCode)
+        k.str = (k.key.length === 1 ? k.key : '')
+    } else if (typeof e === 'string' && e.length === 1) {
+        k.ctrl = false
+        k.shift = false
+        k.alt = false
+        k.key = e
+        k.str = e
+    }
   }
 
   is (k, or) {

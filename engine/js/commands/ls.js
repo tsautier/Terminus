@@ -12,7 +12,7 @@ Command.def('ls', [ARGT.dir], function () {
     }
     for (const f of list) {
       tab.push([
-        f.link ? 'link' : (f instanceof Room ? 'dir' : 'file '),
+        f.link ? 'link' : (f instanceof Room ? 'dir' : 'file'),
         f.mod.stringify(),
         f.owner,
         f.group,

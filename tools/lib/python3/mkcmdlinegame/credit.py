@@ -1,16 +1,12 @@
+"""
+   For integrating credit files
+"""
 import re
 from ogaget.credit_file import parse as _just_parse_credit_file
-from .utils import get_content, spaced, write
-from .build_params import CREDIT_AUTHOR_KEYS, CREDIT_BY_LISTED_KEYS, \
-    CREDIT_INFO_KEYS
+from .utils import spaced
+from .build_params import CREDIT_AUTHOR_KEYS, CREDIT_BY_LISTED_KEYS, CREDIT_INFO_KEYS
 
-"""
- /experimental/ could help to minify js;
- set INDEX_CREDIT_DATAS = True to shorten CREDITS hash by storing
- redondant names in a list CREDITS_DATA
- TODO generate a js code block that refill CREDITS
- and RES (see credits_builder in build.py)
-"""
+# /experimental/ setting to true could help to minify js by storing redondant names
 INDEX_CREDIT_DATAS = False
 
 CREDITS_DATA = []
@@ -20,13 +16,19 @@ LANG_CREDITS = {}
 RE_LANG_SPECIFIC_KEY = r"^\[([a-z]+)\]\s*(.*)"
 
 
-def get_credit_data_idx(name):
+def _get_credit_data_idx(name):
+    """
+     /experimental/ could help to minify js;
+     set INDEX_CREDIT_DATAS = True to shorten CREDITS hash by storing
+     redondant names in a list CREDITS_DATA
+     TODO generate a js code block that refill CREDITS
+     and RES (see credits_builder in build.py)
+    """
     if INDEX_CREDIT_DATAS:
         if name not in CREDITS_DATA:
             CREDITS_DATA.append(name)
         return CREDITS_DATA.index(name)
-    else:
-        return name
+    return name
 
 
 def parse_credit(fpath):
@@ -48,12 +50,12 @@ def parse_credit(fpath):
             for val in vals:
                 _add_extra_credit(
                     lkeys[key],
-                    get_credit_data_idx(val),
+                    _get_credit_data_idx(val),
                     LANG_CREDITS, key=lang
                 )
         elif vals:
             credits_[key] = (
-                [get_credit_data_idx(val) for val in vals]
+                [_get_credit_data_idx(val) for val in vals]
                 if isinstance(vals, list) else vals
             )
 
@@ -73,7 +75,7 @@ def _add_extra_credit(typ, name, tab, key=None):
             tab[key] = {}
     tgt = tab[key] if key else tab
 
-    idx = get_credit_data_idx(name)
+    idx = _get_credit_data_idx(name)
     if typ not in tgt:
         tgt[typ] = {}
     if name not in tgt[typ]:
@@ -88,13 +90,7 @@ def add_extra_credit(typ, name):
     _add_extra_credit(typ, name, EXTRA_CREDITS)
 
 
-def parse_credit_asset(
-        fpath,
-        asset_type,
-        if_any_key=CREDIT_AUTHOR_KEYS,
-        info_keys=CREDIT_INFO_KEYS,
-        extra_credits_keys=CREDIT_BY_LISTED_KEYS
-):
+def parse_credit_asset(fpath, asset_type, if_any_key=None, info_keys=None, extra_credits_keys=None):
     """
     parse a credit file for an asset (see _just_parse_credit_file)
     (unordered credit)
@@ -103,6 +99,13 @@ def parse_credit_asset(
     parsed = _just_parse_credit_file(fpath)
     refcredit = {}
 
+    if not if_any_key:
+        if_any_key = CREDIT_AUTHOR_KEYS
+    if not info_keys:
+        info_keys = CREDIT_INFO_KEYS
+    if not extra_credits_keys:
+        extra_credits_keys = CREDIT_BY_LISTED_KEYS
+
     minimum = False
     for key in parsed:
         if (not if_any_key) or key in if_any_key:
@@ -110,7 +113,7 @@ def parse_credit_asset(
         # for val in parsed[key][0]:
         for val in parsed[key]:
             if key in info_keys + (if_any_key or []):
-                refcredit[key] = get_credit_data_idx(val)
+                refcredit[key] = _get_credit_data_idx(val)
             if key in extra_credits_keys:
                 add_extra_credit(
                     spaced(asset_type, key),
@@ -124,7 +127,7 @@ def parse_credit_asset(
                 if (not extra_credits_keys) or nkey in extra_credits_keys:
                     _add_extra_credit(
                         spaced(asset_type, nkey),
-                        get_credit_data_idx(val),
+                        _get_credit_data_idx(val),
                         LANG_CREDITS, key=lang
                     )
                 continue

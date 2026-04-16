@@ -32,19 +32,18 @@ def protect_js_property_key(key):
             '-' in key or ',' in key or
             '%' in key
         ) else '')
-    return "%s%s%s" % (quote_chr, key, quote_chr)
+    return f"{quote_chr}{key}{quote_chr}"
 
 
 
 def protect_js_var(var):
     """ prepare var to be used as variable name """
-    ret = ""
     return re.sub('[.()!]+', '_', var)
 
 
 def quoted(var):
     """ result is a quoted string """
-    return var if var.startswith('"') or var.startswith("'") else "'%s'" % var
+    return var if var.startswith('"') or var.startswith("'") else f"'{var}'"
 
 
 def get_attrs_content(fname, indent="", as_dict=False):
@@ -107,6 +106,7 @@ def find_js_value(lines, k):
     return None
 
 def parse_attrs_lines(lines):
+    """ parse attribute of a file (attribute.js) """
     ret = {}
     for line in [l.strip() for l in lines]:
         matched = re.match(RE_JS_VALUE_F % (
@@ -166,33 +166,29 @@ def get_assets_references(fpath, lines=False):
 
 
 def jsonize(val):
+    """ to json """
     if isinstance(val, dict):
         values = ""
         for idx, (key, value) in enumerate(val.items()):
-            values += "%s%s: %s" % (
-                ', ' if idx != 0 else '',
-                protect_js_property_key(key),
-                jsonize(value)
-            )
-        return "{%s}" % (" %s " % values if len(values) else values)
-    elif isinstance(val, list):
+            values += f"{', ' if idx != 0 else ''}{protect_js_property_key(key)}: {jsonize(value)}"
+        return "{" + (f" {values} " if values else "") + "}"
+    if isinstance(val, list):
         values = ""
         for idx, value in enumerate(val):
-            values += "%s%s" % (
-                ', ' if idx != 0 else '',
-                jsonize(value)
-            )
-        return "[%s]" % values
-    elif isinstance(val, str):
+            values += f"{', ' if idx != 0 else ''}{jsonize(value)}"
+        return f"[{values}]"
+    if isinstance(val, str):
         value = val.replace('\\', '\\\\')
         return (
-            '"%s"' % val.replace('"', '\\"')
-        ) if "'" in val else "'%s'" % val
-    elif isinstance(val, bool):
+            '"' + val.replace('"', '\\"') + '"'
+        ) if "'" in val else f"'{val}'"
+    if isinstance(val, bool):
         return 1 if val else 0
-    elif isinstance(val, int):
+    if isinstance(val, int):
         return val
+    return ""
 
 
 def jsdeclare_var(vname, val):
-    return ['var %s = %s' % (vname, jsonize(val))] + ["\n"]
+    """ return lines (str list) with var declaration """
+    return [f'var {vname} = {jsonize(val)}', "\n"]

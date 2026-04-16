@@ -4,6 +4,7 @@
    Generate javascript and move assets
 """
 import os
+import sys
 from os.path import basename, join
 from re import match
 from .utils import copy, copy_dir, ensure_dir, onlydirs, onlyfiles, write
@@ -22,6 +23,9 @@ from .trace import (LineFollower, follow_as, get_attrs_content,
 from .logging import print_err, print_info
 
 INDENT_STRING = '  '
+
+if os.environ.get('DEBUG', False):
+    from pprint import pprint
 
 
 def _nopo(polines, typ, name, indent=''):
@@ -94,9 +98,7 @@ def _crawl_fetch_content(room, polines, indent):
 
 
 def _get_varname(room):
-    return '$%s' % basename(
-        room[:-1] if room.endswith('/') else room
-    )
+    return f"${basename(room[:-1] if room.endswith('/') else room)}"
 
 
 def _crawl_attrs(room, polines, assets, jslines, indent):
@@ -104,7 +106,7 @@ def _crawl_attrs(room, polines, assets, jslines, indent):
 
     # extra functions
     for i in [j for j in CONTENT_POSITION if j.startswith('_')]:
-        jslines[i] += get_content(join(room, '%s.js' % i))
+        jslines[i] += get_content(join(room, f'{i}.js'))
 
     lvl = indent * INDENT_STRING
     lvl1 = (indent + 1) * INDENT_STRING
@@ -169,7 +171,7 @@ def _dir2js(params):
     }
 
     for i in [j for j in CONTENT_POSITION if j.startswith('_')]:
-        jslines[i] = get_content(join(params['project_dir'], '%s.js' % i))
+        jslines[i] = get_content(join(params['project_dir'], f'{i}.js'))
 
     jslines['content'] = _embrace(
         params['root_dir'], ["%snewRoom(%s, {\n", "\n%s})\n"],
@@ -198,9 +200,8 @@ def _get_extra_credits(tab):
     """ sort """
     for typ in tab:
         tab[typ] = sorted(
-            [k for k in tab[typ]],
-            key=lambda a: 1 /
-            tab[typ][a]
+            list(tab[typ]),
+            key=lambda a: 1 / tab[typ][a]
         )
     return tab
 
@@ -210,20 +211,20 @@ def pogen(params, polines):
     for (lang, content) in polines.get():
         if lang not in LANG_CREDITS:
             print_err(
-                "Missing translators information.\n"
-                "Add a line '[%s] translation: names;...'\n"
-                "in file: '%s'" % (lang, params['./game_info_file']))
+                f"Missing translators information.\n"
+                f"Add a line '[{lang}] translation: names;...'\n"
+                f"in file: '{params['./game_info_file']}'")
             print_info('exiting...')
-            exit()
+            sys.exit()
         write(params['./dialog.%s.po'] % lang, content)
         write(
             params['./dialog.%s.js'] % lang,
             po2json(params['./dialog.%s.po'] % lang) + [
-                "const APP_NAME = '%s';" % params['app_name'],
-                "const LANG = '%s';\n" % lang] +
+                f"const APP_NAME = '{params['app_name']}';",
+                f"const LANG = '{lang}';\n"] +
             jsdeclare_var('LANG_CREDITS',
                           _get_extra_credits(LANG_CREDITS[lang])),
-            title='%s dialogs' % lang
+            title=f'{lang} dialogs'
         )
 
 
@@ -234,11 +235,11 @@ def default_licenses_builder(dicparam):
 
 
 def default_credits_builder(dicparam):
+    """ simple credit builder """
 
     (credits_, keys_) = parse_credit(dicparam['./game_info_file'])
 
     if os.environ.get('DEBUG', False):
-        from pprint import pprint
         pprint(credits_)
         pprint(keys_)
 
@@ -260,24 +261,24 @@ def default_credits_builder(dicparam):
 
 def default_game_defaults_builder(params):
     """ propagate params file as defaults """
-    game_settings = params.get('game',{})
+    game_settings = params.get('game', {})
 
-    users = game_settings.get('users',{})
+    users = game_settings.get('users', {})
 
     default_user = users.get('default', '')
     user = users.get(default_user, {})
 
     start_dir = game_settings.get(
         'start_dir', user.get(
-            'variables',{}).get(
-                'HOME','/'))
+            'variables', {}).get(
+                'HOME', '/'))
 
-    users = { k:v for k, v in users.items() if k != 'default' }
+    users = {k: v for k, v in users.items() if k != 'default'}
     for u in users:
         users[u]['v'] = users[u].pop('variables')
 
     return follow_as(
-        'default_game_defaults_builder',"""
+        'default_game_defaults_builder', """
 var GameDefaults = { env: function (){
       return new Env({
         me: %s, // current user
@@ -296,11 +297,11 @@ def default_assets_builder(params, assets):
     """ reference assets in js and copy content """
     jsassets = {}
     for typ in ASSET_TYPES:
-        ensure_dir(params['target_%s_dir' % typ])
+        ensure_dir(params[f'target_{typ}_dir'])
         jsassets[typ] = {}
         for ref, (source, filename, credit) in assets.items(typ):
-            copy(source, params['target_%s_dir' % typ], filename)
-            ftgt = join(params['target_%s_subdir' % typ], filename)
+            copy(source, params[f'target_{typ}_dir'], filename)
+            ftgt = join(params[f'target_{typ}_subdir'], filename)
             if typ == 'img':
                 objrefs = ftgt
             else:

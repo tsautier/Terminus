@@ -1,13 +1,17 @@
 /* Terminal interface which solve completion problem */
 // require(['shell/Shell','shell/Key']);
 
-var CursorListener = {
-  listeners: [],
-  push: function (f) {
-    CursorListener.listeners.push(f)
-  },
-  fire: function (k, pos) {
-    CursorListener.listeners.forEach((f) => f(k, pos))
+class WindowWithCursorListener extends Window {
+  constructor () {
+      super()
+      this.onCursorChangeListeners = []
+  }
+  onCursorChange (f) {
+      this.onCursorChangeListeners.push(f)
+  }
+  cursorChanged (k, pos) {
+      if (typeof k === 'string') { k = new Key(k) }
+      this.onCursorChangeListeners.forEach((f) => f(k, pos))
   }
 }
 
@@ -25,7 +29,7 @@ var CursorListener = {
  *  to clear : vt.clear()
  *  to mute sound : vt.mute = true
  */
-class VTerm extends Window {
+class VTerm extends WindowWithCursorListener {
   constructor (el, env) {
     super()
     const v = this
@@ -324,7 +328,6 @@ class VTerm extends Window {
 
   renewLine (promptHTML) {
     this.enableInput()
-    CursorListener.fire()
     this.PS1.innerHTML = promptHTML
     this.input.value = this.next_input_value
   }
@@ -350,13 +353,14 @@ class VTerm extends Window {
       const k = new Key(e)
       v.shell.keydown(k, vt.readline)
       if (v.disabled.input) { v.msgidx += 1; v.next_input_value += k.str }
+      v.cursorChanged(k, v.input.selectionStart)
     }
     pr.keyup = function (e) {
       const k = new Key(e)
       const ks = Key.toStr(k)
       v.statkey[ks] = (v.statkey[ks] || 0) + 1
       v.shell.keyup(k, vt.readline)
-      CursorListener.fire(k, v.input.selectionStart)
+      v.cursorChanged(k, v.input.selectionStart)
     }
     v.shell.renewLine()
   }
@@ -366,7 +370,7 @@ class VTerm extends Window {
     v.line = ''
     v.readline = addEl(v.inputcontainer, 'p', accessible({ class: 'input' }))
     v.readline.appendChild(v.cmdinput)
-    CursorListener.fire()
+    v.cursorChanged(null, v.input.selectionStart)
     v.validateRead = function () {
       v.echo(this.input.value, { direct: true })
       if (func) func(v.line)
@@ -385,7 +389,7 @@ class VTerm extends Window {
     delete v.validateRead
     delete v.terminateRead
     v.line = ''
-    CursorListener.fire()
+      v.cursorChanged(null, v.input.selectionStart)
   }
 
   disableInput () { // disable can act as a mutex, if a widget don't get true then it shouldn't enable input
@@ -409,7 +413,7 @@ class VTerm extends Window {
     v.input.focus()
     v.focus(v.input)
     v.emit(['InputFocused'])
-    CursorListener.fire()
+    v.cursorChanged(null, v.input.selectionStart)
     return true
   }
 

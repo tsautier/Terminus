@@ -126,7 +126,7 @@ function autoShuffleLine (t, msg, fromcomplexicity, tocomplexicity, stepcomplexi
   const limit = tocomplexicity * sens
   const step = (tocomplexicity - fromcomplexicity) / stepcomplexity
   const line_sh = shuffleStr(msg, tmpc)
-  const len = line_sh.lenght
+  //const len = line_sh.length
   t.input_operation_interval = setInterval(() => {
     if (t.msgidx !== idx) {
       clearInterval(t.input_operation_interval)
@@ -139,7 +139,7 @@ function autoShuffleLine (t, msg, fromcomplexicity, tocomplexicity, stepcomplexi
       if (tmpc > tocomplexicity) line = setChr(line, inccnt % msg.length, '###')
       else clearInterval(t.input_operation_interval)
       t.line = line
-      CursorListener.fire(line.charAt(0), line.lenght)
+      t.cursorChanged(line.charAt(0), line.length)
       inccnt++
     }
   }, period)

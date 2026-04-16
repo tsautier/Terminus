@@ -15,38 +15,40 @@ from .logging import print_info, print_err
 
 DEBUG_SKIP = os.environ.get('DEBUG_SKIP', '').split(',')
 NODEJS = '' if 'nodejs' in DEBUG_SKIP else which("nodejs") or which("node")
+NODEJS_INIT = {'useable': False}
 CSSLINT = which("csslint")
 
-NODEJS_INIT_OK = False
 if NODEJS:
     # NODEJS_VERSION = subprocess.getoutput(NODEJS + ' --version')
     # print('using %s %s' % (NODEJS, NODEJS_VERSION))
-    NODEMODULES = join(realpath(BUILD_TOOLS), "node_modules")
-    NODEBIN = join(NODEMODULES, ".bin")
+    NODEJS_INIT['modules_dir'] = join(realpath(BUILD_TOOLS), "node_modules")
+    NODEJS_INIT['bin_dir'] = join(NODEJS_INIT['modules_dir'], ".bin")
 else:
     DEBUG_SKIP = ['npm', 'babel', 'uglifyjs', 'postcss']
 
+
 def install_deps(force=False, update=True):
+    """ Install or update NODEJS tools"""
     if 'npm' in DEBUG_SKIP:
-        return True
-    global NODEJS_INIT_OK
+        return
     d = getcwd()
     chdir(BUILD_TOOLS)
-    NODEJS_INIT_OK = True
+    NODEJS_INIT['useable'] = True
     if force or not isfile('package-lock.json'):
         err = subprocess.call('npm install'.split())
-        NODEJS_INIT_OK = (err == 0)
+        NODEJS_INIT['useable'] = err == 0
     if update:
         err = subprocess.call('npm update'.split())
-        NODEJS_INIT_OK = (err == 0)
+        NODEJS_INIT['useable'] = err == 0
     chdir(d)
 
+
 def _nodebin(cmd, *args):
-    if not NODEJS_INIT_OK:
+    if not NODEJS_INIT['useable']:
         print('npm install incomplete : abort')
-        return
-    cmd_path = cmd if cmd.startswith('./') else join(NODEBIN, cmd)
-    return system("%s %s %s" % (NODEJS, cmd_path, " ".join(args)))
+        return False
+    cmd_path = cmd if cmd.startswith('./') else join(NODEJS_INIT['bin_dir'], cmd)
+    return system(f"{NODEJS} {cmd_path} {' '.join(args)}")
 
 
 def transpile(files, target):
@@ -55,10 +57,10 @@ def transpile(files, target):
     # specific to babeljs... preset env is not found without that
     nodemodules_local = join(dirname(complete), "node_modules")
     if not (islink(nodemodules_local) or isdir(nodemodules_local)):
-        symlink(NODEMODULES, nodemodules_local)
+        symlink(NODEJS_INIT['modules_dir'], nodemodules_local)
     #
 
-    if  'babel' in DEBUG_SKIP:
+    if 'babel' in DEBUG_SKIP:
         print_info("%14s > %s", 'Copy (no babel)', relpath(target))
         copy(complete, target)
         return True
@@ -70,7 +72,7 @@ def transpile(files, target):
 def minify(src, target):
     """ Minify """
 
-    if  'uglifyjs' in DEBUG_SKIP:
+    if 'uglifyjs' in DEBUG_SKIP:
         print_info("%14s > %s", 'Copy (no uglifyjs)', relpath(target))
         copy(src, target)
         return True
@@ -83,17 +85,16 @@ def minify(src, target):
 def postcss(files, target):
     """ Autoprefix """
 
-    if CSSLINT and not 'csslint' in DEBUG_SKIP:
+    if CSSLINT and 'csslint' not in DEBUG_SKIP:
         for f in files:
-           p = subprocess.Popen([CSSLINT, f],
-                                stdout=subprocess.PIPE)
-           p.communicate()
-           if p.returncode != 0:
-               print_err('CSS LINT failed for %s', f)
+            with subprocess.Popen([CSSLINT, f], stdout=subprocess.PIPE) as p:
+                p.communicate()
+                if p.returncode != 0:
+                    print_err('CSS LINT failed for %s', f)
 
     complete = concatenated(files)
 
-    if  'postcss' in DEBUG_SKIP:
+    if 'postcss' in DEBUG_SKIP:
         print_info("%14s > %s", 'Copy (no postcss)', relpath(target))
         copy(complete, target)
         return True

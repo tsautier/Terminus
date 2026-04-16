@@ -64,17 +64,20 @@ def _main(gamedir, tgt, opts):
         makedirs(tgt)
     params = mkcmdlinegame.build_params.get_project_parameters(gamedir, tgt)
     _link_dirs_in_project(params, ['js', 'img', 'sound', 'music', 'engine'])
-    only = '-only' in opts
+    do_all = '-all' in opts
+    only = not do_all and '-only' in opts
+    all_in_one_html = transpile = postcss = minify = do_all
+    all_in_one_html |= '-html' in opts
+    transpile |=  '-transpile' in opts
+    postcss |= '-css' in opts
+    minify |= '-minify' in opts
+    if not only:
+        transpile |=  minify
+        postcss |= minify
     if os.environ.get('DEBUG', False):
         from pprint import pprint
         pprint(params)
-    if (
-            '-transpile' in opts
-            or (not only and ('-minify' in opts or '-html' in opts))
-            or (not only and ('-html' in opts or '-minifyjs' in opts))
-            or  (not only and '-html' in opts)
-            or '-all' in opts
-            ):
+    if do_all or transpile or postcss or minify:
         mkcmdlinegame.nodejs.install_deps()
     if not only:
         build_data = mkcmdlinegame.build.build(params)
@@ -82,16 +85,13 @@ def _main(gamedir, tgt, opts):
             exit(1)
         if '-t' in opts:
             build_data['line_follower'].write_trace()
-    if '-transpile' in opts or (
-            not only and ('-minify' in opts or '-html' in opts)):
+    if transpile:
         mkcmdlinegame.build.transpilejs(params)
-    if '-css' in opts or (
-            not only and ('-html' in opts or '-minifyjs' in opts)):
+    if postcss:
         mkcmdlinegame.build.postcss(params)
-    if '-minify' in opts or (
-            not only and '-html' in opts):
+    if minify:
         mkcmdlinegame.build.minifyjs(params)
-    if '-html' in opts or '-all' in opts:
+    if all_in_one_html:
         mkcmdlinegame.build.all_in_one_html(params)
 
 
